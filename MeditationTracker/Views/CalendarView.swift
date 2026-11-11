@@ -33,7 +33,7 @@ struct CalendarView: View {
                 }
                 .padding()
             }
-            .background(Color(.systemGroupedBackground))
+            .paperBackground()
             .navigationTitle("Calendar")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -59,17 +59,19 @@ struct CalendarView: View {
     private var monthHeader: some View {
         HStack {
             Button { changeMonth(by: -1) } label: {
-                Image(systemName: "chevron.left").padding(8)
+                Image(systemName: "chevron.left").font(.subheadline.weight(.light)).padding(8)
             }
             Spacer()
             Text(month.formatted(.dateTime.month(.wide).year()))
-                .font(.title3.bold())
+                .font(Theme.title)
+                .foregroundStyle(Theme.ink)
             Spacer()
             Button { changeMonth(by: 1) } label: {
-                Image(systemName: "chevron.right").padding(8)
+                Image(systemName: "chevron.right").font(.subheadline.weight(.light)).padding(8)
             }
             .disabled(isCurrentMonth)
         }
+        .foregroundStyle(Theme.ink)
     }
 
     private var weekdayHeader: some View {
@@ -79,8 +81,8 @@ struct CalendarView: View {
         return HStack(spacing: 4) {
             ForEach(Array(ordered.enumerated()), id: \.offset) { _, symbol in
                 Text(symbol)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .font(Theme.eyebrow)
+                    .foregroundStyle(Theme.inkTertiary)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -124,15 +126,17 @@ struct CalendarView: View {
 
         return ZStack {
             Circle()
-                .fill(meditated ? Color.accentColor.opacity(goalMet ? 1 : 0.35) : Color.clear)
+                .fill(meditated ? (goalMet ? Theme.sage : Theme.sage.opacity(0.3)) : Color.clear)
+                .padding(2)
             if isSelected {
-                Circle().strokeBorder(Color.primary, lineWidth: 2)
+                Circle().strokeBorder(Theme.ink, lineWidth: 1)
             } else if isToday {
-                Circle().strokeBorder(Color.accentColor, lineWidth: 1.5)
+                Circle().strokeBorder(Theme.sage, lineWidth: 1)
             }
             Text("\(calendar.component(.day, from: day))")
-                .font(.callout.weight(isToday || meditated ? .bold : .regular))
-                .foregroundStyle(goalMet ? Color.white : (isFuture ? Color.secondary : Color.primary))
+                .font(.system(.callout, design: .serif).weight(isToday ? .semibold : .regular))
+                .monospacedDigit()
+                .foregroundStyle(goalMet ? Theme.surface : (isFuture ? Theme.inkTertiary : Theme.ink))
         }
         .frame(height: 40)
         .contentShape(Rectangle())
@@ -144,11 +148,11 @@ struct CalendarView: View {
 
     private var legend: some View {
         HStack(spacing: 16) {
-            legendItem(Color.accentColor.opacity(0.35), "Meditated")
-            legendItem(Color.accentColor, "Goal reached")
+            legendItem(Theme.sage.opacity(0.3), "Meditated")
+            legendItem(Theme.sage, "Goal reached")
         }
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(Theme.inkSecondary)
     }
 
     private func legendItem(_ color: Color, _ text: String) -> some View {
@@ -164,8 +168,8 @@ struct CalendarView: View {
         let inMonth = byDay.filter { calendar.isDate($0.key, equalTo: month, toGranularity: .month) }
         let totalSeconds = inMonth.values.reduce(0, +)
         return HStack(spacing: 12) {
-            StatCard(title: "Days this month", value: "\(inMonth.count)", systemImage: "calendar.badge.checkmark")
-            StatCard(title: "Time this month", value: Fmt.total(totalSeconds), systemImage: "clock")
+            StatCard(title: "Days this month", value: "\(inMonth.count)")
+            StatCard(title: "Time this month", value: Fmt.total(totalSeconds))
         }
     }
 
@@ -174,13 +178,14 @@ struct CalendarView: View {
             .filter { calendar.isDate($0.startDate, inSameDayAs: selectedDay) }
             .sorted { $0.startDate < $1.startDate }
 
-        return VStack(alignment: .leading, spacing: 8) {
-            Text(selectedDay.formatted(date: .complete, time: .omitted))
-                .font(.headline)
+        return VStack(alignment: .leading, spacing: 12) {
+            Eyebrow(selectedDay.formatted(date: .complete, time: .omitted))
+                .padding(.top, 8)
 
             if daySessions.isEmpty {
-                Text("No meditation on this day.")
-                    .foregroundStyle(.secondary)
+                Text("A quiet day.")
+                    .font(.system(.body, design: .serif))
+                    .foregroundStyle(Theme.inkSecondary)
                     .card()
             } else {
                 ForEach(daySessions) { session in
@@ -193,10 +198,9 @@ struct CalendarView: View {
             Button {
                 showingAdd = true
             } label: {
-                Label("Add Session to This Day", systemImage: "plus")
-                    .frame(maxWidth: .infinity)
+                Text("Add a session to this day")
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(SecondaryButtonStyle())
         }
     }
 

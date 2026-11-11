@@ -24,8 +24,8 @@ enum NotificationManager {
         center.removePendingNotificationRequests(withIdentifiers: [reminderID])
 
         let content = UNMutableNotificationContent()
-        content.title = "Time to meditate 🧘"
-        content.body = "A few mindful minutes keep your streak going."
+        content.title = "A moment to sit"
+        content.body = "A few quiet minutes, whenever you are ready."
         content.sound = .default
 
         var components = DateComponents()
@@ -43,8 +43,8 @@ enum NotificationManager {
     static func scheduleTimerEnd(after seconds: TimeInterval) {
         guard seconds >= 1 else { return }
         let content = UNMutableNotificationContent()
-        content.title = "Session complete 🔔"
-        content.body = "Nicely done. Open the app to log your meditation."
+        content.title = "Session complete"
+        content.body = "Take a breath. Today's reflection is waiting when you open the app."
         content.sound = .default
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: seconds, repeats: false)
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: timerID, content: content, trigger: trigger))

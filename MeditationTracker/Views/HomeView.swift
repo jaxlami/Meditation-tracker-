@@ -9,10 +9,12 @@ struct HomeView: View {
     @State private var showingLog = false
     @State private var editingSession: MeditationSession?
 
+    private var todaySessions: [MeditationSession] {
+        sessions.filter { Calendar.current.isDateInToday($0.startDate) }
+    }
+
     private var todaySeconds: Int {
-        sessions
-            .filter { Calendar.current.isDateInToday($0.startDate) }
-            .reduce(0) { $0 + $1.durationSeconds }
+        todaySessions.reduce(0) { $0 + $1.durationSeconds }
     }
 
     private var greeting: String {
@@ -20,7 +22,7 @@ struct HomeView: View {
         case 5..<12: "Good morning"
         case 12..<17: "Good afternoon"
         case 17..<22: "Good evening"
-        default: "Hello"
+        default: "Still hours"
         }
     }
 
@@ -31,105 +33,161 @@ struct HomeView: View {
 
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
-                    todayCard
-                    streakCard(current: currentStreak, longest: longestStreak)
+                VStack(alignment: .leading, spacing: 28) {
+                    header
+                    todayCard(current: currentStreak, longest: longestStreak)
+                    reflectionCard
 
-                    Button {
-                        showingTimer = true
-                    } label: {
-                        Label("Start Meditation", systemImage: "play.fill")
-                            .font(.title3.bold())
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
+                    VStack(spacing: 6) {
+                        Button {
+                            showingTimer = true
+                        } label: {
+                            Text("Begin a session")
+                        }
+                        .buttonStyle(PrimaryButtonStyle())
 
-                    Button {
-                        showingLog = true
-                    } label: {
-                        Label("Log a Session Manually", systemImage: "square.and.pencil")
+                        Button("Log a past session") { showingLog = true }
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.inkSecondary)
+                            .padding(.vertical, 10)
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
 
                     recentSection
                 }
-                .padding()
+                .padding(.horizontal, 20)
+                .padding(.bottom, 32)
             }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle(greeting)
+            .paperBackground()
+            .toolbar(.hidden, for: .navigationBar)
             .fullScreenCover(isPresented: $showingTimer) { TimerView() }
             .sheet(isPresented: $showingLog) { LogSessionView() }
             .sheet(item: $editingSession) { session in LogSessionView(session: session) }
         }
     }
 
-    private var todayCard: some View {
-        let goalSeconds = max(dailyGoalMinutes, 1) * 60
-        let progress = Double(todaySeconds) / Double(goalSeconds)
-        return HStack(spacing: 20) {
-            ZStack {
-                ProgressRing(progress: progress, lineWidth: 10)
-                Image(systemName: progress >= 1 ? "checkmark" : "leaf.fill")
-                    .font(.title2.bold())
-                    .foregroundStyle(Color.accentColor)
-            }
-            .frame(width: 76, height: 76)
+    // MARK: - Sections
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Today")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text("\(todaySeconds / 60) of \(dailyGoalMinutes) min")
-                    .font(.title2.bold())
-                Text(progress >= 1 ? "Daily goal reached 🎉" : "Keep going, you've got this.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Eyebrow(Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide)))
+            Text(greeting)
+                .font(Theme.display(38))
+                .foregroundStyle(Theme.ink)
         }
-        .card()
+        .padding(.top, 24)
     }
 
-    private func streakCard(current: Int, longest: Int) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Label("Current streak", systemImage: "flame.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(.orange)
-                Text("\(current) day\(current == 1 ? "" : "s")")
-                    .font(.title2.bold())
+    private func todayCard(current: Int, longest: Int) -> some View {
+        let goalSeconds = max(dailyGoalMinutes, 1) * 60
+        let progress = Double(todaySeconds) / Double(goalSeconds)
+        let minutes = todaySeconds / 60
+
+        return VStack(alignment: .leading, spacing: 20) {
+            HStack(alignment: .center, spacing: 24) {
+                ZStack {
+                    ProgressRing(progress: progress, lineWidth: 3)
+                    VStack(spacing: 0) {
+                        Text("\(minutes)")
+                            .font(Theme.numeral(34))
+                            .foregroundStyle(Theme.ink)
+                            .contentTransition(.numericText())
+                        Text("min")
+                            .font(.caption2)
+                            .foregroundStyle(Theme.inkSecondary)
+                    }
+                }
+                .frame(width: 96, height: 96)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Eyebrow("Today")
+                    Text(progress >= 1 ? "Goal met for today." : "\(max(0, dailyGoalMinutes - minutes)) min to your goal")
+                        .font(.system(.title3, design: .serif))
+                        .foregroundStyle(Theme.ink)
+                    Text("Daily goal · \(dailyGoalMinutes) min")
+                        .font(.footnote)
+                        .foregroundStyle(Theme.inkSecondary)
+                }
             }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 4) {
-                Label("Best", systemImage: "trophy.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(.yellow)
-                Text("\(longest) day\(longest == 1 ? "" : "s")")
-                    .font(.title2.bold())
+
+            Rectangle().fill(Theme.hairline).frame(height: 0.5)
+
+            HStack(spacing: 6) {
+                Circle().fill(Theme.clay).frame(width: 6, height: 6)
+                Text("\(current) day\(current == 1 ? "" : "s") in a row")
+                    .foregroundStyle(Theme.ink)
+                Text("·").foregroundStyle(Theme.inkTertiary)
+                Text("best \(longest)")
+                    .foregroundStyle(Theme.inkSecondary)
             }
+            .font(.subheadline)
         }
-        .card()
+        .card(padding: 22)
+    }
+
+    /// Today's question: an intention before you sit, your answer once you've reflected.
+    private var reflectionCard: some View {
+        let answered = todaySessions.first { $0.hasReflection }
+        let prompt = answered?.reflectionPrompt.isEmpty == false
+            ? answered!.reflectionPrompt
+            : ReflectionPrompts.prompt(for: .now)
+
+        return Button {
+            if let answered { editingSession = answered } else { showingTimer = true }
+        } label: {
+            VStack(alignment: .leading, spacing: 14) {
+                Eyebrow("Today's reflection", color: Theme.sage)
+                Text(prompt)
+                    .font(.system(.title3, design: .serif).italic())
+                    .foregroundStyle(Theme.ink)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let answered {
+                    Text(answered.reflectionAnswer)
+                        .font(.system(.body, design: .serif))
+                        .foregroundStyle(Theme.inkSecondary)
+                        .lineLimit(4)
+                        .multilineTextAlignment(.leading)
+                        .padding(.leading, 12)
+                        .overlay(alignment: .leading) {
+                            Rectangle().fill(Theme.sage).frame(width: 1.5)
+                        }
+                } else {
+                    Text("Hold it in mind as you sit. You'll be asked after your session.")
+                        .font(.footnote)
+                        .foregroundStyle(Theme.inkSecondary)
+                }
+            }
+            .card(padding: 22)
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
     private var recentSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Recent")
-                .font(.headline)
-                .padding(.top, 8)
+        VStack(alignment: .leading, spacing: 12) {
+            Eyebrow("Recent")
             if sessions.isEmpty {
-                Text("No sessions yet. Start your first one above!")
-                    .foregroundStyle(.secondary)
+                Text("Your sessions will gather here.")
+                    .font(.system(.body, design: .serif))
+                    .foregroundStyle(Theme.inkSecondary)
                     .card()
             } else {
-                ForEach(sessions.prefix(5)) { session in
-                    SessionRow(session: session)
-                        .card()
-                        .onTapGesture { editingSession = session }
+                VStack(spacing: 0) {
+                    ForEach(Array(sessions.prefix(5).enumerated()), id: \.element.id) { index, session in
+                        if index > 0 {
+                            Rectangle().fill(Theme.hairline).frame(height: 0.5)
+                        }
+                        SessionRow(session: session)
+                            .padding(.vertical, 16)
+                            .onTapGesture { editingSession = session }
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 4)
+                .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Theme.surface))
+                .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.hairline, lineWidth: 0.5))
             }
         }
     }

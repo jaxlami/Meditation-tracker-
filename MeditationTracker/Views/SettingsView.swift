@@ -27,11 +27,11 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Goals") {
+                Section {
                     Stepper("Daily goal: \(dailyGoalMinutes) min", value: $dailyGoalMinutes, in: 1...240)
                     Stepper("Default timer: \(defaultTimerMinutes) min", value: $defaultTimerMinutes, in: 1...180)
                     Toggle("Chime when timer ends", isOn: $chimeEnabled)
-                }
+                } header: { FormHeader("Practice") }
 
                 Section {
                     Toggle("Daily reminder", isOn: $reminderEnabled)
@@ -39,9 +39,9 @@ struct SettingsView: View {
                         DatePicker("Remind me at", selection: reminderTime, displayedComponents: .hourAndMinute)
                     }
                 } header: {
-                    Text("Reminders")
+                    FormHeader("Reminders")
                 } footer: {
-                    Text("A gentle notification each day to help you build the habit.")
+                    Text("One quiet nudge a day to help the habit settle in.")
                 }
 
                 Section {
@@ -49,27 +49,30 @@ struct SettingsView: View {
                         item: CSVFile(sessions: sessions),
                         preview: SharePreview("Meditation Log.csv", image: Image(systemName: "tablecells"))
                     ) {
-                        Label("Export Sessions (CSV)", systemImage: "square.and.arrow.up")
+                        Label("Export sessions (CSV)", systemImage: "square.and.arrow.up")
+                            .foregroundStyle(Theme.ink)
                     }
                     .disabled(sessions.isEmpty)
 
                     Button(role: .destructive) {
                         confirmDeleteAll = true
                     } label: {
-                        Label("Delete All Sessions", systemImage: "trash")
+                        Label("Delete all sessions", systemImage: "trash")
                     }
                     .disabled(sessions.isEmpty)
                 } header: {
-                    Text("Your Data")
+                    FormHeader("Your data")
                 } footer: {
-                    Text("All data stays on your iPhone. Export a CSV to back it up or open it in Numbers/Excel.")
+                    Text("Everything stays on your iPhone. Export a CSV to back it up or open it in Numbers or Excel. Reflections are included.")
                 }
 
-                Section("About") {
+                Section {
                     LabeledContent("Sessions logged", value: "\(sessions.count)")
-                    LabeledContent("Version", value: "1.0")
-                }
+                    LabeledContent("Version", value: "2.0")
+                } header: { FormHeader("About") }
             }
+            .paperBackground()
+            .tint(Theme.sage)
             .navigationTitle("Settings")
             .onChange(of: reminderEnabled) { _, enabled in
                 if enabled {

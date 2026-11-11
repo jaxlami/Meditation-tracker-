@@ -13,6 +13,10 @@ final class MeditationSession {
     var moodAfter: Int = 0
     var notes: String = ""
     var createdAt: Date = Date()
+    /// The daily question shown after the session (kept with the answer so it never changes later).
+    var reflectionPrompt: String = ""
+    /// Your answer to the daily question. Empty = not answered.
+    var reflectionAnswer: String = ""
 
     init(
         startDate: Date = .now,
@@ -21,7 +25,9 @@ final class MeditationSession {
         technique: Technique = .mindfulness,
         moodBefore: Int = 0,
         moodAfter: Int = 0,
-        notes: String = ""
+        notes: String = "",
+        reflectionPrompt: String = "",
+        reflectionAnswer: String = ""
     ) {
         self.startDate = startDate
         self.durationSeconds = durationSeconds
@@ -30,11 +36,14 @@ final class MeditationSession {
         self.moodBefore = moodBefore
         self.moodAfter = moodAfter
         self.notes = notes
+        self.reflectionPrompt = reflectionPrompt
+        self.reflectionAnswer = reflectionAnswer
         self.createdAt = .now
     }
 
     var techniqueKind: Technique { Technique(rawValue: technique) ?? .other }
     var endDate: Date { startDate.addingTimeInterval(TimeInterval(durationSeconds)) }
+    var hasReflection: Bool { !reflectionAnswer.isEmpty }
 }
 
 enum Technique: String, CaseIterable, Identifiable {
@@ -52,7 +61,7 @@ enum Technique: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
-        case .mindfulness: "brain.head.profile"
+        case .mindfulness: "circle.dotted"
         case .breathing: "wind"
         case .bodyScan: "figure.mind.and.body"
         case .lovingKindness: "heart"
@@ -60,18 +69,13 @@ enum Technique: String, CaseIterable, Identifiable {
         case .mantra: "waveform"
         case .walking: "figure.walk"
         case .guided: "headphones"
-        case .other: "sparkles"
+        case .other: "circle"
         }
     }
 }
 
 enum Mood {
-    static let emojis = ["", "😣", "🙁", "😐", "🙂", "😌"]
     static let labels = ["", "Rough", "Low", "Okay", "Good", "Great"]
-
-    static func emoji(_ value: Int) -> String {
-        emojis.indices.contains(value) ? emojis[value] : ""
-    }
 
     static func label(_ value: Int) -> String {
         labels.indices.contains(value) ? labels[value] : ""

@@ -1,32 +1,63 @@
 import SwiftUI
 
 struct CardModifier: ViewModifier {
+    var padding: CGFloat = 20
+
     func body(content: Content) -> some View {
         content
-            .padding()
+            .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Theme.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(Theme.hairline, lineWidth: 0.5)
+            )
     }
 }
 
 extension View {
-    func card() -> some View { modifier(CardModifier()) }
+    func card(padding: CGFloat = 20) -> some View { modifier(CardModifier(padding: padding)) }
 }
 
 struct ProgressRing: View {
     var progress: Double
-    var lineWidth: CGFloat = 12
+    var lineWidth: CGFloat = 3
+    var tint: Color = Theme.sage
 
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.accentColor.opacity(0.2), lineWidth: lineWidth)
+                .stroke(Theme.hairline, lineWidth: max(1, lineWidth / 3))
             Circle()
                 .trim(from: 0, to: min(max(progress, 0), 1))
-                .stroke(Color.accentColor, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .stroke(tint, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
         }
-        .animation(.easeInOut(duration: 0.4), value: progress)
+        .animation(.easeInOut(duration: 0.6), value: progress)
+    }
+}
+
+/// Mood drawn as a circle that fills from the bottom: empty = rough, full = great. No emoji.
+struct MoodGlyph: View {
+    let value: Int
+    var size: CGFloat = 16
+    var tint: Color = Theme.sage
+
+    var body: some View {
+        let fraction = CGFloat(max(0, min(value, 5))) / 5
+        ZStack {
+            Circle().strokeBorder(tint, lineWidth: 1)
+            Circle()
+                .fill(tint)
+                .mask(alignment: .bottom) {
+                    Rectangle().frame(height: size * fraction)
+                }
+        }
+        .frame(width: size, height: size)
+        .accessibilityLabel(Mood.label(value))
     }
 }
 
@@ -34,36 +65,45 @@ struct SessionRow: View {
     let session: MeditationSession
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: session.techniqueKind.icon)
-                .font(.title3)
-                .foregroundStyle(Color.accentColor)
-                .frame(width: 44, height: 44)
-                .background(Color.accentColor.opacity(0.15), in: Circle())
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(session.technique)
+                        .font(Theme.headline)
+                        .foregroundStyle(Theme.ink)
+                    Text(session.startDate.formatted(date: .abbreviated, time: .shortened))
+                        .font(.footnote)
+                        .foregroundStyle(Theme.inkSecondary)
+                    if !session.location.isEmpty {
+                        Text(session.location)
+                            .font(.footnote)
+                            .foregroundStyle(Theme.inkTertiary)
+                            .lineLimit(1)
+                    }
+                }
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(session.technique)
-                    .font(.headline)
-                Text(session.startDate.formatted(date: .abbreviated, time: .shortened))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                if !session.location.isEmpty {
-                    Label(session.location, systemImage: "mappin.and.ellipse")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                Spacer(minLength: 8)
+
+                VStack(alignment: .trailing, spacing: 6) {
+                    Text(Fmt.duration(session.durationSeconds))
+                        .font(.system(.subheadline, design: .serif))
+                        .monospacedDigit()
+                        .foregroundStyle(Theme.ink)
+                    if session.moodAfter > 0 {
+                        MoodGlyph(value: session.moodAfter, size: 12)
+                    }
                 }
             }
 
-            Spacer(minLength: 8)
-
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(Fmt.duration(session.durationSeconds))
-                    .font(.subheadline.weight(.semibold))
-                    .monospacedDigit()
-                if session.moodAfter > 0 {
-                    Text(Mood.emoji(session.moodAfter))
-                }
+            if session.hasReflection {
+                Text("\u{201C}\(session.reflectionAnswer)\u{201D}")
+                    .font(.system(.subheadline, design: .serif).italic())
+                    .foregroundStyle(Theme.inkSecondary)
+                    .lineLimit(2)
+                    .padding(.leading, 12)
+                    .overlay(alignment: .leading) {
+                        Rectangle().fill(Theme.sage).frame(width: 1.5)
+                    }
             }
         }
         .contentShape(Rectangle())
@@ -73,23 +113,18 @@ struct SessionRow: View {
 struct StatCard: View {
     let title: String
     let value: String
-    let systemImage: String
-    var tint: Color = .accentColor
+    var tint: Color = Theme.ink
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Image(systemName: systemImage)
-                .foregroundStyle(tint)
+        VStack(alignment: .leading, spacing: 10) {
+            Eyebrow(title)
             Text(value)
-                .font(.title2.bold())
-                .monospacedDigit()
+                .font(Theme.numeral(28))
+                .foregroundStyle(tint)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
         }
-        .card()
+        .card(padding: 18)
     }
 }
 
@@ -98,12 +133,13 @@ struct MoodPicker: View {
     @Binding var selection: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(title)
+                    .foregroundStyle(Theme.ink)
                 Spacer()
                 Text(selection == 0 ? "Not set" : Mood.label(selection))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.inkSecondary)
             }
             .font(.subheadline)
             HStack {
@@ -111,17 +147,34 @@ struct MoodPicker: View {
                     Button {
                         selection = (selection == value) ? 0 : value
                     } label: {
-                        Text(Mood.emoji(value))
-                            .font(.title)
-                            .padding(6)
-                            .background(Circle().fill(selection == value ? Color.accentColor.opacity(0.25) : Color.clear))
-                            .opacity(selection == 0 || selection == value ? 1 : 0.4)
+                        VStack(spacing: 6) {
+                            MoodGlyph(value: value, size: 26, tint: selection == value ? Theme.ink : Theme.sage)
+                            Text(Mood.label(value))
+                                .font(.caption2)
+                                .foregroundStyle(selection == value ? Theme.ink : Theme.inkTertiary)
+                        }
+                        .opacity(selection == 0 || selection == value ? 1 : 0.45)
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.borderless)
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(title): \(Mood.label(value))")
+                    .accessibilityAddTraits(selection == value ? .isSelected : [])
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
+        .sensoryFeedback(.selection, trigger: selection)
+    }
+}
+
+/// Section header for forms in the editorial style.
+struct FormHeader: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+
+    var body: some View {
+        Eyebrow(text)
+            .padding(.top, 8)
     }
 }

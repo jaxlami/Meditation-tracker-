@@ -31,9 +31,9 @@ struct StatsView: View {
             ScrollView {
                 if sessions.isEmpty {
                     ContentUnavailableView(
-                        "No Stats Yet",
-                        systemImage: "chart.bar",
-                        description: Text("Meditate a few times and your progress will appear here.")
+                        "No patterns yet",
+                        systemImage: "circle.dotted",
+                        description: Text("Sit a few times and your practice will take shape here.")
                     )
                     .padding(.top, 80)
                 } else {
@@ -47,7 +47,7 @@ struct StatsView: View {
                     .padding()
                 }
             }
-            .background(Color(.systemGroupedBackground))
+            .paperBackground()
             .navigationTitle("Stats")
         }
     }
@@ -61,12 +61,12 @@ struct StatsView: View {
         let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
         return LazyVGrid(columns: columns, spacing: 12) {
-            StatCard(title: "Current streak", value: "\(MeditationStats.currentStreak(days)) days", systemImage: "flame.fill", tint: .orange)
-            StatCard(title: "Longest streak", value: "\(MeditationStats.longestStreak(days)) days", systemImage: "trophy.fill", tint: .yellow)
-            StatCard(title: "Total time", value: Fmt.total(totalSeconds), systemImage: "clock.fill")
-            StatCard(title: "Sessions", value: "\(sessions.count)", systemImage: "number")
-            StatCard(title: "Average session", value: Fmt.duration(average), systemImage: "timer")
-            StatCard(title: "Favorite time", value: favoriteTimeOfDay, systemImage: "sun.and.horizon.fill", tint: .pink)
+            StatCard(title: "Current streak", value: "\(MeditationStats.currentStreak(days)) days", tint: Theme.clay)
+            StatCard(title: "Longest streak", value: "\(MeditationStats.longestStreak(days)) days")
+            StatCard(title: "Total time", value: Fmt.total(totalSeconds))
+            StatCard(title: "Sessions", value: "\(sessions.count)")
+            StatCard(title: "Average session", value: Fmt.duration(average))
+            StatCard(title: "Favorite time", value: favoriteTimeOfDay, tint: Theme.sage)
         }
     }
 
@@ -105,9 +105,9 @@ struct StatsView: View {
             }
             .pickerStyle(.segmented)
 
-            Text("\(Int(total)) min over \(activeDays) of \(range.days) days")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            Text("\(Int(total)) min across \(activeDays) of \(range.days) days")
+                .font(.system(.subheadline, design: .serif))
+                .foregroundStyle(Theme.inkSecondary)
 
             Chart {
                 ForEach(data) { item in
@@ -115,24 +115,30 @@ struct StatsView: View {
                         x: .value("Day", item.date, unit: .day),
                         y: .value("Minutes", item.minutes)
                     )
-                    .foregroundStyle(Color.accentColor.gradient)
-                    .cornerRadius(4)
+                    .foregroundStyle(Theme.sage)
+                    .cornerRadius(3)
                 }
                 RuleMark(y: .value("Goal", Double(dailyGoalMinutes)))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                    .foregroundStyle(.secondary)
+                    .lineStyle(StrokeStyle(lineWidth: 0.75, dash: [3, 4]))
+                    .foregroundStyle(Theme.ink)
                     .annotation(position: .top, alignment: .leading) {
                         Text("Goal \(dailyGoalMinutes) min")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.inkSecondary)
                     }
             }
             .chartXAxis {
                 AxisMarks(values: .stride(by: .day, count: range == .week ? 1 : 7)) { _ in
-                    AxisGridLine()
+                    AxisGridLine().foregroundStyle(Theme.hairline)
                     AxisValueLabel(format: range == .week
                         ? Date.FormatStyle().weekday(.abbreviated)
                         : Date.FormatStyle().month(.abbreviated).day())
+                }
+            }
+            .chartYAxis {
+                AxisMarks { _ in
+                    AxisGridLine().foregroundStyle(Theme.hairline)
+                    AxisValueLabel().foregroundStyle(Theme.inkTertiary)
                 }
             }
             .frame(height: 200)
@@ -148,19 +154,18 @@ struct StatsView: View {
             .sorted { $0.value > $1.value }
 
         return VStack(alignment: .leading, spacing: 12) {
-            Text("Techniques")
-                .font(.headline)
+            Eyebrow("Techniques")
             Chart(totals) { item in
                 BarMark(
                     x: .value("Minutes", item.value),
                     y: .value("Technique", item.name)
                 )
-                .foregroundStyle(Color.accentColor.gradient)
-                .cornerRadius(4)
+                .foregroundStyle(Theme.sage)
+                .cornerRadius(3)
                 .annotation(position: .trailing) {
                     Text("\(item.value) min")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.inkSecondary)
                 }
             }
             .chartXAxis(.hidden)
@@ -178,20 +183,21 @@ struct StatsView: View {
             .prefix(5)
 
         return VStack(alignment: .leading, spacing: 10) {
-            Text("Top Places")
-                .font(.headline)
+            Eyebrow("Top places")
             if places.isEmpty {
                 Text("Add a location when logging to see where you meditate most.")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.inkSecondary)
             } else {
                 ForEach(places) { place in
                     HStack {
-                        Label(place.name, systemImage: "mappin.and.ellipse")
+                        Text(place.name)
+                            .font(.system(.body, design: .serif))
+                            .foregroundStyle(Theme.ink)
                             .lineLimit(1)
                         Spacer()
                         Text("\(place.value)×")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.inkSecondary)
                             .monospacedDigit()
                     }
                 }
@@ -209,43 +215,42 @@ struct StatsView: View {
         let change = after - before
 
         return VStack(alignment: .leading, spacing: 10) {
-            Text("Mood")
-                .font(.headline)
+            Eyebrow("Mood")
             if rated.isEmpty {
-                Text("Rate your mood before and after a session to see how meditation changes how you feel.")
+                Text("Rate your mood before and after a session to see how sitting changes how you feel.")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.inkSecondary)
             } else {
                 HStack(spacing: 16) {
                     moodColumn("Before", value: before)
                     Image(systemName: "arrow.right")
-                        .foregroundStyle(.secondary)
+                        .font(.footnote.weight(.light))
+                        .foregroundStyle(Theme.inkTertiary)
                     moodColumn("After", value: after)
                     Spacer()
                     VStack(alignment: .trailing) {
                         Text(String(format: "%+.1f", change))
-                            .font(.title2.bold())
-                            .foregroundStyle(change >= 0 ? Color.green : Color.orange)
+                            .font(Theme.numeral(28))
+                            .foregroundStyle(change >= 0 ? Theme.sage : Theme.clay)
                         Text("avg change")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.inkSecondary)
                     }
                 }
                 Text("Based on \(rated.count) rated session\(rated.count == 1 ? "" : "s").")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.inkTertiary)
             }
         }
         .card()
     }
 
     private func moodColumn(_ title: String, value: Double) -> some View {
-        VStack {
-            Text(Mood.emoji(Int(value.rounded())))
-                .font(.largeTitle)
+        VStack(spacing: 8) {
+            MoodGlyph(value: Int(value.rounded()), size: 30)
             Text("\(title) · \(String(format: "%.1f", value))")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.inkSecondary)
         }
     }
 }

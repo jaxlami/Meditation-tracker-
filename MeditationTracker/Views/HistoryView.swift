@@ -17,6 +17,8 @@ struct HistoryView: View {
             $0.location.localizedCaseInsensitiveContains(query)
                 || $0.notes.localizedCaseInsensitiveContains(query)
                 || $0.technique.localizedCaseInsensitiveContains(query)
+                || $0.reflectionAnswer.localizedCaseInsensitiveContains(query)
+                || $0.reflectionPrompt.localizedCaseInsensitiveContains(query)
         }
     }
 
@@ -31,6 +33,9 @@ struct HistoryView: View {
                     Section {
                         ForEach(monthSessions) { session in
                             SessionRow(session: session)
+                                .padding(.vertical, 6)
+                                .listRowBackground(Theme.surface)
+                                .listRowSeparatorTint(Theme.hairline)
                                 .onTapGesture { editingSession = session }
                         }
                         .onDelete { offsets in
@@ -38,26 +43,32 @@ struct HistoryView: View {
                             try? modelContext.save()
                         }
                     } header: {
-                        HStack {
+                        HStack(alignment: .firstTextBaseline) {
                             Text(month.formatted(.dateTime.month(.wide).year()))
+                                .font(.system(.title3, design: .serif))
+                                .foregroundStyle(Theme.ink)
+                                .textCase(nil)
                             Spacer()
-                            Text(Fmt.total(monthSessions.reduce(0) { $0 + $1.durationSeconds }))
+                            Eyebrow(Fmt.total(monthSessions.reduce(0) { $0 + $1.durationSeconds }))
                         }
+                        .padding(.top, 8)
                     }
                 }
             }
             .overlay {
                 if sessions.isEmpty {
                     ContentUnavailableView(
-                        "No Sessions Yet",
-                        systemImage: "leaf",
-                        description: Text("Sessions you time or log will show up here.")
+                        "Nothing here yet",
+                        systemImage: "circle.dotted",
+                        description: Text("Sessions and reflections you record will gather here.")
                     )
                 } else if filtered.isEmpty {
                     ContentUnavailableView.search(text: searchText)
                 }
             }
-            .searchable(text: $searchText, prompt: "Search places, notes, techniques")
+            .paperBackground()
+            .tint(Theme.ink)
+            .searchable(text: $searchText, prompt: "Search notes, reflections, places")
             .navigationTitle("History")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

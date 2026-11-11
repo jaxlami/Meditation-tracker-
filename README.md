@@ -1,7 +1,16 @@
-# Meditation Tracker (iOS)
+# Meditation Tracker (iOS) · v2
 
-A simple, native iPhone app (SwiftUI + SwiftData) for tracking your meditation practice.
+A calm, native iPhone app (SwiftUI + SwiftData) for tracking your meditation practice.
 Everything is stored on your phone, and nothing is uploaded anywhere.
+
+## New in v2
+
+- **Daily reflection.** A short question that changes each day, asked right below Notes after every session.
+  Today's question also appears on the Today screen before you sit. Answers show on the Calendar and in History,
+  are searchable, and are included in the CSV export.
+- **Warm, editorial redesign.** Paper and ink colors, a sage accent, serif type and hairline cards.
+  Mood is drawn instead of shown as emoji, and the timer screen is calmer.
+- See **[ROADMAP.md](ROADMAP.md)** for what's planned next, including Do Not Disturb / Focus mode (on hold).
 
 ## Features
 
@@ -15,6 +24,7 @@ Everything is stored on your phone, and nothing is uploaded anywhere.
   - Technique (mindfulness, breathing, body scan, loving-kindness…)
   - Mood before and after (optional)
   - Notes
+  - Today's reflection (a daily question)
 - **Calendar**: a month view where days you meditated are highlighted (solid when you hit your daily goal).
   Tap a day to see or edit its sessions or add one. Swipe to change months.
 - **Streaks**: current and longest streak in days.
@@ -50,13 +60,11 @@ MeditationTracker/
   MeditationTrackerApp.swift      App entry, sets up SwiftData storage
   Models/MeditationSession.swift  The saved session + technique and mood types
   Views/                          Today, Timer, Log/Edit, Calendar, History, Stats, Settings
-  Helpers/                        Streak math, notifications, location lookup, CSV export
+  Views/Theme.swift               v2 design system: colors, type, buttons
+  Helpers/                        Streak math, notifications, location lookup, CSV export, daily reflection prompts
   Assets.xcassets                 App icon and accent color
 ```
 
 ## Ideas for later
 
-- Sync **mindful minutes to Apple Health** (needs the HealthKit capability, which requires a paid developer account)
-- iCloud sync between devices
-- Home Screen widget showing your streak
-- Interval bells during long sessions
+See [ROADMAP.md](ROADMAP.md).
