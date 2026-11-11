@@ -22,7 +22,6 @@ struct TimerView: View {
     @State private var didLoadDefaults = false
     @State private var breathe = false
 
-    private let ticker = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
     private let presets = [5, 10, 15, 20, 30, 45, 60]
 
     private var total: TimeInterval { TimeInterval(minutes * 60) }
@@ -65,10 +64,14 @@ struct TimerView: View {
             UIApplication.shared.isIdleTimerDisabled = false
             NotificationManager.cancelTimerEnd()
         }
-        .onReceive(ticker) { date in
-            now = date
-            if phase == .running && remaining <= 0 {
-                complete()
+        .task {
+            // Ticks four times a second while the timer screen is open.
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(250))
+                now = .now
+                if phase == .running && remaining <= 0 {
+                    complete()
+                }
             }
         }
         .sheet(isPresented: $showingLog, onDismiss: { dismiss() }) {
