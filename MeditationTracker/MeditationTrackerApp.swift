@@ -11,6 +11,6 @@ struct MeditationTrackerApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: MeditationSession.self)
+        .modelContainer(for: [MeditationSession.self, JournalEntry.self])
     }
 }

@@ -8,8 +8,8 @@ struct ContentView: View {
                 .tabItem { Label("Today", systemImage: "circle.circle") }
             CalendarView()
                 .tabItem { Label("Calendar", systemImage: "calendar") }
-            HistoryView()
-                .tabItem { Label("History", systemImage: "book.closed") }
+            JournalView()
+                .tabItem { Label("Journal", systemImage: "book.closed") }
             StatsView()
                 .tabItem { Label("Stats", systemImage: "chart.bar") }
             SettingsView()
@@ -21,5 +21,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: MeditationSession.self, inMemory: true)
+        .modelContainer(for: [MeditationSession.self, JournalEntry.self], inMemory: true)
 }

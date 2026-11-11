@@ -59,21 +59,15 @@ enum Theme {
         UITabBar.appearance().standardAppearance = tab
         UITabBar.appearance().scrollEdgeAppearance = tab
 
-        let nav = UINavigationBarAppearance()
-        nav.configureWithOpaqueBackground()
-        nav.backgroundColor = uiPaper
-        nav.shadowColor = .clear
-        let serif = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .largeTitle).withDesign(.serif)
-        let inlineSerif = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .headline).withDesign(.serif)
-        if let serif {
-            nav.largeTitleTextAttributes = [.font: UIFont(descriptor: serif, size: 34), .foregroundColor: uiInk]
+        // Serif titles via the plain title properties. (A custom UINavigationBarAppearance hides
+        // large titles on iOS 26+, so the bar keeps the system's own background.)
+        let bar = UINavigationBar.appearance()
+        if let serif = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .largeTitle).withDesign(.serif) {
+            bar.largeTitleTextAttributes = [.font: UIFont(descriptor: serif, size: 34), .foregroundColor: uiInk]
         }
-        if let inlineSerif {
-            nav.titleTextAttributes = [.font: UIFont(descriptor: inlineSerif, size: 17), .foregroundColor: uiInk]
+        if let serif = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .headline).withDesign(.serif) {
+            bar.titleTextAttributes = [.font: UIFont(descriptor: serif, size: 17), .foregroundColor: uiInk]
         }
-        UINavigationBar.appearance().standardAppearance = nav
-        UINavigationBar.appearance().scrollEdgeAppearance = nav
-        UINavigationBar.appearance().compactAppearance = nav
     }
 }
 

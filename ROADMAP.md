@@ -6,6 +6,15 @@ Everything planned for the Meditation app, one list. Status: **v2** (in this rel
 
 ## In v2
 
+### Journal — v2
+The History tab is now **Journal**: free journal entries and meditation sessions in one timeline.
+- **+** menu: *Journal entry* or *Meditation session*.
+- An entry: mood first (same picker as sessions), then free writing, then topic **tags** (several per entry).
+- **Smart tags**, on-device: matches your existing tags and common topics (romance, gym, childhood, work…),
+  related words via Apple's NaturalLanguage, and Apple Intelligence where available. Suggestions appear as you write;
+  a new entry saved without tags gets the top suggestions automatically.
+- Filter chips with counts (all · entries · sessions · each #tag), month groups, search across text and tags.
+
 ### Daily reflection — v2
 After each session, the log form asks a short affirmation-style question that changes every day
 (e.g. *"What quality do you want to carry into today?"*). It sits directly below Notes.
@@ -47,4 +56,5 @@ no haptics, a chrome-free timer and an optional dimmed screen.
 - **Reflection extras**: browse past questions and answers, favorite prompts, write your own prompts.
 - **Journal-only export** (reflections as a plain text / Markdown file).
 - **Custom app icon** to match the new design.
-- **Paper grain texture** on backgrounds. Tried in v2: a tiled noise image blanked the whole screen on iOS 27, so it was taken out. Revisit with a pre-rendered full-size asset.
+- **Paper grain texture** on backgrounds. Removed during v2 after the app showed a blank screen in testing; it later turned out the simulator can simply be slow on first launch, so the grain may not have been the cause. Worth retrying with a pre-rendered asset.
+- **Journal follow-ups**: show journal entries on Calendar days, export the journal (text/Markdown), rename and merge tags, mood trends per tag in Stats.

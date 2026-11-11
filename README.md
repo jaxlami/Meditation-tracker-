@@ -10,6 +10,8 @@ Everything is stored on your phone, and nothing is uploaded anywhere.
   are searchable, and are included in the CSV export.
 - **Warm, editorial redesign.** Paper and ink colors, a sage accent, serif type and hairline cards.
   Mood is drawn instead of shown as emoji, and the timer screen is calmer.
+- **Journal.** The History tab is now Journal. Tap **+** to write a journal entry (mood, thoughts and tags)
+  or log a session. Tags are suggested on-device as you write, and you can filter the timeline by any tag.
 - See **[ROADMAP.md](ROADMAP.md)** for what's planned next, including Do Not Disturb / Focus mode (on hold).
 
 ## Features
@@ -30,7 +32,7 @@ Everything is stored on your phone, and nothing is uploaded anywhere.
 - **Streaks**: current and longest streak in days.
 - **Stats**: total time, session count, average length, favorite time of day, a 7- and 30-day chart against
   your goal, a technique breakdown, top places and average mood change.
-- **History**: every session grouped by month, searchable. Swipe to delete, tap to edit.
+- **Journal**: journal entries and sessions grouped by month, filterable by tag, searchable. Swipe to delete, tap to edit.
 - **Settings**: daily goal, default timer length, chime on/off, a daily reminder notification,
   **CSV export** (to Files, Numbers or Excel) and delete all data.
 
